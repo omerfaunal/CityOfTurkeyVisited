@@ -1,13 +1,35 @@
+const urlParams = new URLSearchParams(window.location.search);
+const currentCityId = urlParams.get('city') || 'istanbul'; // Default to Istanbul
+
+// City Metadata mapping
+const citiesMeta = {
+  istanbul: { name: "İstanbul", count: 39 },
+  ankara: { name: "Ankara", count: 25 },
+  izmir: { name: "İzmir", count: 30 },
+  antalya: { name: "Antalya", count: 19 },
+  konya: { name: "Konya", count: 31 },
+  mugla: { name: "Muğla", count: 13 }
+};
+
+const cityMeta = citiesMeta[currentCityId] || citiesMeta['istanbul'];
+const storageKey = `selectedDistricts_${currentCityId}`;
+
+// Set document title and initial counts
+document.title = `${cityMeta.name}Visited`;
+document.getElementById('total_count').textContent = cityMeta.count;
+
 const HOVER_COLOR = "#EFAE88";
 const MAP_COLOR = "#fff2e3";
-let cityCount = localStorage.getItem("selectedDistrictsKonya")
-  ? JSON.parse(localStorage.getItem("selectedDistrictsKonya")).length
+
+let cityCount = localStorage.getItem(storageKey)
+  ? JSON.parse(localStorage.getItem(storageKey)).length
   : 0;
 document.getElementById("city_count").innerHTML = cityCount;
 
-d3.json("konya-districts.json").then(function (data) {
+// Load map data
+d3.json(`data/${currentCityId}-districts.json`).then(function (data) {
   let width = 900;
-  let height = 600;
+  let height = 550;
   let projection = d3.geoEqualEarth();
   projection.fitSize([width, height], data);
   let path = d3.geoPath().projection(projection);
@@ -26,9 +48,9 @@ d3.json("konya-districts.json").then(function (data) {
     .join("path")
     .attr("d", path)
     .attr("fill", function (d, i) {
-      if (localStorage.getItem("selectedDistrictsKonya")) {
+      if (localStorage.getItem(storageKey)) {
         if (
-          JSON.parse(localStorage.getItem("selectedDistrictsKonya")).includes(
+          JSON.parse(localStorage.getItem(storageKey)).includes(
             d.properties.Name || d.properties.name
           )
         ) {
@@ -40,12 +62,12 @@ d3.json("konya-districts.json").then(function (data) {
     .attr("stroke", "#000")
     .on("mouseover", function (d, i) {
       d3.select(this).attr("fill", HOVER_COLOR);
-      const labelId = "#label-" + (d.properties.Name || d.properties.name).replace(/[^a-zA-Z0-9]/g, '');
+      const labelId = "#label-" + (d.properties.Name || d.properties.name).replace(/[^a-zA-Z0-9ığüşöçİĞÜŞÖÇ]/g, '');
       d3.select(labelId).style("opacity", "1").style("font-weight", "bold");
     })
     .on("mouseout", function (d, i) {
       if (!d.noFill) d3.select(this).attr("fill", MAP_COLOR);
-      const labelId = "#label-" + (d.properties.Name || d.properties.name).replace(/[^a-zA-Z0-9]/g, '');
+      const labelId = "#label-" + (d.properties.Name || d.properties.name).replace(/[^a-zA-Z0-9ığüşöçİĞÜŞÖÇ]/g, '');
       const bounds = path.bounds(d);
       const dx = bounds[1][0] - bounds[0][0];
       const dy = bounds[1][1] - bounds[0][1];
@@ -62,20 +84,20 @@ d3.json("konya-districts.json").then(function (data) {
         d3.select(this).attr("fill", HOVER_COLOR);
 
         //add selected city to localStorage
-        if (localStorage.getItem("selectedDistrictsKonya")) {
+        if (localStorage.getItem(storageKey)) {
           let tempSelectedCities = JSON.parse(
-            localStorage.getItem("selectedDistrictsKonya")
+            localStorage.getItem(storageKey)
           );
           if (tempSelectedCities.includes(distName)) return;
           tempSelectedCities.push(distName);
           localStorage.setItem(
-            "selectedDistrictsKonya",
+            storageKey,
             JSON.stringify(tempSelectedCities)
           );
         } else {
           let tempArr = [];
           tempArr.push(distName);
-          localStorage.setItem("selectedDistrictsKonya", JSON.stringify(tempArr));
+          localStorage.setItem(storageKey, JSON.stringify(tempArr));
         }
       } else {
         cityCount--;
@@ -84,14 +106,14 @@ d3.json("konya-districts.json").then(function (data) {
 
         //remove from localStorage
         let tempSelectedCities = JSON.parse(
-          localStorage.getItem("selectedDistrictsKonya")
+          localStorage.getItem(storageKey)
         );
         const index = tempSelectedCities.indexOf(distName);
         if (index !== -1) {
           tempSelectedCities.splice(index, 1);
         }
         localStorage.setItem(
-          "selectedDistrictsKonya",
+          storageKey,
           JSON.stringify(tempSelectedCities)
         );
       }
@@ -116,7 +138,7 @@ d3.json("konya-districts.json").then(function (data) {
     .attr("text-anchor", "middle")
     .attr("font-size", "10pt")
     .attr("id", function(d) {
-      return "label-" + (d.properties.Name || d.properties.name).replace(/[^a-zA-Z0-9]/g, '');
+      return "label-" + (d.properties.Name || d.properties.name).replace(/[^a-zA-Z0-9ığüşöçİĞÜŞÖÇ]/g, '');
     })
     .style("fill", "black")
     .style("pointer-events", "none")
@@ -128,6 +150,9 @@ d3.json("konya-districts.json").then(function (data) {
       const name = d.properties.Name || d.properties.name;
       return (dx > name.length * 6.5 && dy > 15) ? "1" : "0";
     });
+}).catch(err => {
+    console.error("Error loading map data:", err);
+    document.getElementById("map_container").innerHTML = `<p style="color:red; text-align:center;">Harita verisi yüklenemedi. (${currentCityId})</p>`;
 });
 
 function downloadMap() {
@@ -141,21 +166,20 @@ function downloadMap() {
 
     const ctx = destCanvas.getContext("2d");
     ctx.textBaseline = "top";
-    ctx.font = "2em Calibri";
+    ctx.font = "2em 'Outfit', sans-serif";
     ctx.fillStyle = "black";
     ctx.textAlign = "start";
-    var textWidth = ctx.measureText("CityVisited/KonyaVisited");
-    ctx.fillText("KonyaVisited", 10, canvas.height - 25);
-    ctx.fillText(cityCount + "/31", 10, 5);
+    ctx.fillText(`${cityMeta.name}Visited`, 10, canvas.height - 35);
+    ctx.fillText(cityCount + `/${cityMeta.count}`, 10, 5);
 
     destCanvas.toBlob(function (blob) {
-      saveAs(blob, "konyavisited.png");
+      saveAs(blob, `${currentCityId}visited.png`);
     });
   });
 }
 
 function resetButton() {
-  localStorage.removeItem("selectedDistrictsKonya")
+  localStorage.removeItem(storageKey)
   cityCount = 0; document.getElementById("city_count").innerHTML = cityCount;
-  location.reload()
+  location.reload();
 }

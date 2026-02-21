@@ -1,0 +1,251 @@
+:root {
+    --bg-color: #f8f9fa;
+    --text-primary: #2d3748;
+    --text-secondary: #718096;
+    --card-bg: #ffffff;
+    --accent-color: #EFAE88;
+    --accent-color-hover: #d9966b;
+    --map-bg: #f8f9fa;
+    --transition-speed: 0.3s;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- Homepage Styles --- */
+
+.home-page {
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.home-container {
+    max-width: 800px;
+    width: 100%;
+    text-align: center;
+}
+
+.home-title {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.home-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 3rem;
+    font-weight: 300;
+}
+
+.city-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.city-link {
+    display: inline-block;
+    padding: 1rem 2rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-decoration: none;
+    background-color: transparent;
+    border-radius: 50px;
+    transition: all var(--transition-speed) ease;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.city-link:hover {
+    background-color: var(--accent-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(239, 174, 136, 0.2);
+    border-color: var(--accent-color);
+}
+
+/* --- Map Page Styles --- */
+
+.map-page {
+    /* Different structure for map page */
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 1rem 2rem;
+}
+
+.map-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1rem;
+    position: relative;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.back-link {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 600;
+    transition: color var(--transition-speed);
+}
+
+.back-link:hover {
+    color: var(--text-primary);
+}
+
+#welcome_text {
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+    margin-bottom: 0.25rem;
+}
+
+#city_count_text {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+#city_count {
+    color: var(--accent-color);
+    font-weight: 700;
+}
+
+.map-main {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 0; /* Important for flex-grow with inner height limits */
+}
+
+#map_container {
+    width: 100%;
+    height: 100%;
+    max-width: 900px;
+    max-height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Optional edge styling for premium feel */
+    border-radius: 20px;
+}
+
+#map_container svg {
+    width: 100%;
+    height: 100%;
+    /* Keep map sizing responsive */
+}
+
+.map-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem 0;
+    margin-bottom: 1rem;
+}
+
+#buttonGroup {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255,255,255,0.7);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    backdrop-filter: blur(10px);
+}
+
+#reset_button, #download_button {
+    padding: 0.6rem 1.5rem;
+    border: none;
+    border-radius: 50px;
+    background-color: transparent;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all var(--transition-speed);
+}
+
+#reset_button:hover, #download_button:hover {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+#github_logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.6;
+    transition: opacity var(--transition-speed);
+    padding: 4px;
+}
+
+#github_logo:hover {
+    opacity: 1;
+}
+
+#github_logo svg {
+    fill: currentColor;
+}
+
+
+/* --- Mobile Responsiveness --- */
+
+@media (max-width: 768px) {
+    .map-header {
+        align-items: flex-start;
+        text-align: left;
+    }
+    
+    .back-link {
+        position: static;
+        transform: none;
+        margin-bottom: 1rem;
+    }
+
+    #welcome_text {
+        text-align: left;
+    }
+
+    .map-page {
+        padding: 1rem;
+    }
+
+    #buttonGroup {
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+        border-radius: 20px;
+    }
+}

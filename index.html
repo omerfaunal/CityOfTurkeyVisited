@@ -1,12 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-    <meta http-equiv="refresh" content="0; url=./istanbul/" />
-    <title>Redirecting to Istanbul</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ziyaret Edilen Şehirler</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <script>
-        window.location.replace("./istanbul/");
-    </script>
+<body class="home-page">
+
+    <div class="home-container">
+        <h1 class="home-title">Ziyaret Ettiğiniz Şehirlerin Haritası</h1>
+        <p class="home-subtitle">İşaretlemek istediğiniz şehri aşağıdan seçin</p>
+
+        <div class="city-nav">
+            <a href="map.html?city=istanbul" class="city-link">İstanbul</a>
+            <a href="map.html?city=ankara" class="city-link">Ankara</a>
+            <a href="map.html?city=izmir" class="city-link">İzmir</a>
+            <a href="map.html?city=antalya" class="city-link">Antalya</a>
+            <a href="map.html?city=konya" class="city-link">Konya</a>
+            <a href="map.html?city=mugla" class="city-link">Muğla</a>
+        </div>
+    </div>
+
 </body>
 </html>
