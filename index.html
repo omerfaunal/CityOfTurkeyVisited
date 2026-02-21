@@ -61,6 +61,27 @@
             stroke: #fff;
             stroke-width: 1.5;
         }
+        .province.visited {
+            fill: var(--accent-color);
+            stroke: #fff;
+        }
+        .province.visited:hover {
+            filter: brightness(0.9);
+            stroke-width: 1.5;
+        }
+        .home-footer {
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .home-footer a {
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+        .home-footer a:hover {
+            color: var(--accent-color);
+        }
         #tooltip {
             position: absolute;
             opacity: 0;
@@ -77,6 +98,64 @@
             margin-top: -10px;
             z-index: 100;
         }
+        .city-count-text {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1rem;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--accent-color);
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        .mode-label {
+            transition: color 0.3s, font-weight 0.3s;
+        }
+        .mode-label.active {
+            font-weight: 700;
+            color: var(--accent-color);
+        }
         @media (max-width: 768px) {
             .home-page { padding: 1rem; }
             .home-header { margin-bottom: 1rem; }
@@ -87,12 +166,26 @@
 
     <div class="home-header">
         <h1 class="home-title">Ziyaret Ettiğiniz Şehirlerin Haritası</h1>
-        <p class="home-subtitle">İşaretlemek istediğiniz şehri haritadan seçin</p>
+        <div class="city-count-text">Ziyaret Edilen Şehir Sayısı: <span id="visited_cities_count">0</span> / 81</div>
+        <div class="mode-toggle">
+            <span id="label-district" class="mode-label active">İlçe Seçimine Git</span>
+            <label class="switch">
+                <input type="checkbox" id="direct_select_toggle">
+                <span class="slider"></span>
+            </label>
+            <span id="label-direct" class="mode-label">Şehri Doğrudan Seç</span>
+        </div>
     </div>
 
     <div id="turkey-map-container">
         <div id="tooltip"></div>
     </div>
+
+    <footer class="home-footer">
+        <a id="github_logo" href="https://github.com/omerfaunal" target="_blank" rel="noopener noreferrer" title="GitHub Profilini Gör">
+            <svg height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true" fill="currentColor"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        </a>
+    </footer>
 
     <script>
         const width = 1200;
@@ -112,6 +205,36 @@
             .attr("preserveAspectRatio", "xMidYMid meet");
 
         const tooltip = d3.select("#tooltip");
+
+        function updateVisitedCount() {
+            let count = 0;
+            svg.selectAll("path").each(function(d) {
+                let cityId = slugify(d.properties.name);
+                if (cityId === "afyon") cityId = "afyonkarahisar";
+                
+                let isVisited = false;
+                let wholeCity = localStorage.getItem(`wholeCity_${cityId}`);
+                if (wholeCity === 'true') {
+                    isVisited = true;
+                } else {
+                    let storedDistricts = localStorage.getItem(`selectedDistricts_${cityId}`);
+                    if (storedDistricts) {
+                        let parsed = JSON.parse(storedDistricts);
+                        if (parsed.length > 0) isVisited = true;
+                    }
+                }
+                
+                if (isVisited) count++;
+                d3.select(this).classed("visited", isVisited);
+            });
+            d3.select("#visited_cities_count").text(count);
+        }
+
+        d3.select("#direct_select_toggle").on("change", function() {
+            let checked = this.checked;
+            d3.select("#label-district").classed("active", !checked);
+            d3.select("#label-direct").classed("active", checked);
+        });
 
         d3.json("data/tr-cities.json").then(data => {
             const projection = d3.geoEqualEarth().fitSize([width, height], data);
@@ -137,8 +260,26 @@
                 .on("click", function(d) {
                     let cityId = slugify(d.properties.name);
                     if(cityId === "afyon") cityId = "afyonkarahisar";
-                    window.location.href = `map.html?city=${cityId}`;
+                    
+                    let isDirectSelect = d3.select("#direct_select_toggle").property("checked");
+                    
+                    if (isDirectSelect) {
+                        let wholeCity = localStorage.getItem(`wholeCity_${cityId}`);
+                        if (wholeCity === 'true') {
+                            localStorage.removeItem(`wholeCity_${cityId}`);
+                            // Optional: Also clear districts to fully un-visit the city.
+                            localStorage.removeItem(`selectedDistricts_${cityId}`);
+                        } else {
+                            localStorage.setItem(`wholeCity_${cityId}`, 'true');
+                        }
+                        updateVisitedCount();
+                    } else {
+                        window.location.href = `map.html?city=${cityId}`;
+                    }
                 });
+
+            // Initialize visited counts and colors after plotting
+            updateVisitedCount();
         }).catch(err => {
             console.error("Türkiye haritası yüklenemedi", err);
             d3.select("#turkey-map-container").html("<p style='color:red'>Harita verisi yüklenemedi.</p>");
