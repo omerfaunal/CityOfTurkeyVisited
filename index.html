@@ -3,29 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ziyaret Edilen Şehirler</title>
+    <title>Türkiye - Ziyaret Edilen Şehirler</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <style>
+        .home-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            height: 100vh;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        .home-header {
+            text-align: center;
+            margin-bottom: 0.5rem;
+            z-index: 10;
+        }
+        .home-title {
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        .home-subtitle {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+        #turkey-map-container {
+            flex-grow: 1;
+            width: 100%;
+            max-width: 1400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            min-height: 0;
+        }
+        #turkey-map-container svg {
+            width: 100%;
+            height: 100%;
+        }
+        .province {
+            fill: #e2e8f0;
+            stroke: #ffffff;
+            stroke-width: 0.5;
+            cursor: pointer;
+            transition: fill 0.2s, stroke 0.2s;
+        }
+        .province:hover {
+            fill: var(--accent-color);
+            stroke: #fff;
+            stroke-width: 1.5;
+        }
+        #tooltip {
+            position: absolute;
+            opacity: 0;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            transition: opacity 0.2s;
+            transform: translate(-50%, -100%);
+            margin-top: -10px;
+            z-index: 100;
+        }
+        @media (max-width: 768px) {
+            .home-page { padding: 1rem; }
+            .home-header { margin-bottom: 1rem; }
+        }
+    </style>
 </head>
 <body class="home-page">
 
-    <div class="home-container">
+    <div class="home-header">
         <h1 class="home-title">Ziyaret Ettiğiniz Şehirlerin Haritası</h1>
-        <p class="home-subtitle">İşaretlemek istediğiniz şehri aşağıdan seçin</p>
-
-        <div class="city-nav">
-            <a href="map.html?city=istanbul" class="city-link">İstanbul</a>
-            <a href="map.html?city=ankara" class="city-link">Ankara</a>
-            <a href="map.html?city=izmir" class="city-link">İzmir</a>
-            <a href="map.html?city=antalya" class="city-link">Antalya</a>
-            <a href="map.html?city=konya" class="city-link">Konya</a>
-            <a href="map.html?city=mugla" class="city-link">Muğla</a>
-            <a href="map.html?city=bursa" class="city-link">Bursa</a>
-            <a href="map.html?city=adana" class="city-link">Adana</a>
-        </div>
+        <p class="home-subtitle">İşaretlemek istediğiniz şehri haritadan seçin</p>
     </div>
 
+    <div id="turkey-map-container">
+        <div id="tooltip"></div>
+    </div>
+
+    <script>
+        const width = 1200;
+        const height = 700;
+        
+        function slugify(text) {
+          const trMap = {
+              'ç':'c', 'ğ':'g', 'ı':'i', 'i':'i', 'ö':'o', 'ş':'s', 'ü':'u',
+              'Ç':'C', 'Ğ':'G', 'İ':'I', 'I':'I', 'Ö':'O', 'Ş':'S', 'Ü':'U'
+          };
+          return text.split('').map(char => trMap[char] || char).join('').toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
+
+        const svg = d3.select("#turkey-map-container")
+            .append("svg")
+            .attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("preserveAspectRatio", "xMidYMid meet");
+
+        const tooltip = d3.select("#tooltip");
+
+        d3.json("data/tr-cities.json").then(data => {
+            const projection = d3.geoEqualEarth().fitSize([width, height], data);
+            const path = d3.geoPath().projection(projection);
+
+            svg.selectAll("path")
+                .data(data.features)
+                .join("path")
+                .attr("class", "province")
+                .attr("d", path)
+                .on("mouseover", function(d) {
+                    d3.select(this).raise(); // Bring to front for clean borders
+                    tooltip.style("opacity", 1)
+                           .text(d.properties.name);
+                })
+                .on("mousemove", function() {
+                    tooltip.style("left", (d3.event.pageX) + "px")
+                           .style("top", (d3.event.pageY - 20) + "px");
+                })
+                .on("mouseout", function() {
+                    tooltip.style("opacity", 0);
+                })
+                .on("click", function(d) {
+                    let cityId = slugify(d.properties.name);
+                    if(cityId === "afyon") cityId = "afyonkarahisar";
+                    window.location.href = `map.html?city=${cityId}`;
+                });
+        }).catch(err => {
+            console.error("Türkiye haritası yüklenemedi", err);
+            d3.select("#turkey-map-container").html("<p style='color:red'>Harita verisi yüklenemedi.</p>");
+        });
+    </script>
 </body>
 </html>
