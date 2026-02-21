@@ -8,7 +8,9 @@ const citiesMeta = {
   izmir: { name: "İzmir", count: 30 },
   antalya: { name: "Antalya", count: 19 },
   konya: { name: "Konya", count: 31 },
-  mugla: { name: "Muğla", count: 13 }
+  mugla: { name: "Muğla", count: 13 },
+  bursa: { name: "Bursa", count: 17 },
+  adana: { name: "Adana", count: 15 }
 };
 
 const cityMeta = citiesMeta[currentCityId] || citiesMeta['istanbul'];
